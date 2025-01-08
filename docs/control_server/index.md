@@ -31,11 +31,11 @@ image that should be booted and any information about images such as
 compression algorithm.
 
 !!! Danger
-	The implementation of the system message is incredibly
+    The implementation of the system message is incredibly
     simple and allows for the complete bypassing of all security
     mechanisms. Please do not deploy the BAAS project on a safety
-	critical system until this mechanism is replaced with a more
-	secure implementation.
+    critical system until this mechanism is replaced with a more
+    secure implementation.
 
 Each request sent to the system is checked whether it is a system
 message and hence is provided with a specific header, whether a user
