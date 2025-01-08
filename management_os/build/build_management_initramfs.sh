@@ -11,7 +11,7 @@ source $SCRIPT_PATH/../../utils/container.sh
 # Generate the image directory
 generateImage $SCRIPT_PATH
 
-CONTROL_SERVER_IP="$(hostname -I | awk '{print $1}')"
+CONTROL_SERVER_IP="$(ip a | grep -F "inet " | awk '{print $2}' | sed -n 2p | rev | cut -b 4- | rev)"
 
 cat > "$SCRIPT_PATH/hosts" << EOF
 # Put the ip address of the control server here so the management
