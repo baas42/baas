@@ -66,7 +66,7 @@ func getHandler(machineStore database.Store, staticDir string, diskpath string) 
 		AllowedHeaders:   []string{"Authorization", "Set-Cookie"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowCredentials: true,
-		Debug:            true,
+		Debug:            false,
 	})
 
 	return c.Handler(r)

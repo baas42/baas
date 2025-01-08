@@ -124,6 +124,7 @@ func getLastSetup(machine *MachineImage) images.ImageSetup {
 func initializeMachine() *images.ImageSetup {
 	var machine MachineImage
 	machine.Initialise("/dev/sda1", "/mnt/machine")
+	machine.CreateMachinePartition()
 	machine.Mount()
 	defer machine.Unmount()
 

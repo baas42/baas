@@ -26,8 +26,9 @@ In general of all of the resources look like the following:
 
 Different resources may be nested in groups of two arbitrarily deep into other resources, for example, `/machine/[mac]/disk/[uuid]/file/[name]`.
 
-Some endpoints may require a user to be logging in, as indicated by the permissions field in the documentation below, which means that the `session-name` cookie must be set to the right value. This can be done by simply [logging in](logging_in.md), copying the relevant cookie value and using it in your requests. For example, using cURL you want to prefix your commands with: `--cookie "session-name=[some base64 string]"`.
+Some endpoints may require a user to be logging in, as indicated by the permissions field in the documentation below, which means that the `session-name` cookie must be set to the right value. This can be done by simply [logging in](logging_in.md), copying the relevant cookie value and using it in your requests. For example, using cURL you want to prefix your commands with: `--cookie "session-name=[some base64 string]"`. Checks can be skipped, for now, by setting a `Type: System` header in your HTTP request.
 
+To send a request you must set the Origin Header due to the [Cross-Origin Resource Sharing][https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS] protections of modern browsers. At the moment, only `http://localhost:9090` is supported as a value.
 
 ## Endpoint compendium
 In this section an overview is given of every single on the defined endpoints together with an example on how to call it, what parameters it takes and what it returns. This section is divided in the same way as the resources defined above.
@@ -53,10 +54,10 @@ Allows a user to get information about a specific machine which is identified by
 {
     "Name": "Machine 1",
     "Architecture": "X86_64",
-	"Managed": true,
+    "Managed": true,
     "MacAddress": [{
-		 "Address": "00:11:22:33:44:55:66"
-	}]
+         "Address": "00:11:22:33:44:55:66"
+    }]
 }
 ```
 
@@ -71,19 +72,19 @@ Receives information about every currently registered machine.
 **Example response:**<br>
 ```json
 [{
-	"Name": "Machine 1",
+    "Name": "Machine 1",
     "Architecture": "x86_64",
-	"Managed": true,
+    "Managed": true,
     "MacAddress": [{
-		"Address": "00:11:22:33:44:55:66"
+        "Address": "00:11:22:33:44:55:66"
     }]
   },
   {
-	"Name": "Machine 2",
+    "Name": "Machine 2",
     "Architecture": "x86_64",
-	"Managed": false,
+    "Managed": false,
     "MacAddress": [{
-		"Address": "42:DE:AD:BE:EF:42"
+        "Address": "42:DE:AD:BE:EF:42"
     }]
 }]
 ```
@@ -105,16 +106,16 @@ the machine.
 **Example body:**<br>
 ```json
 {
-	"Name": "Hello World",
-	"Architecture": "x86_64",
-	"Managed": true,
-	"MacAddress": [{
-		"Address": "52:54:00:d9:71:15",
-		"MachineModelID": 12
-	}]
+    "Name": "Hello World",
+    "Architecture": "x86_64",
+    "Managed": true,
+    "MacAddress": [{
+        "Address": "52:54:00:d9:71:15",
+        "MachineModelID": 12
+    }]
 }
 ```
-**Example curl command:** `curl -X POST localhost:4848/machine -H 'Content-Type: application/json' -d '{"name": "Test", "Architecture": "x86_64", "Managed": true, "MacAddress": {"Address": "52:54:00:d9:71:12"}1}'`
+**Example curl command:** `curl -X POST localhost:4848/machine -H 'Content-Type: application/json' -d '{"name": "Test", "Architecture": "x86_64", "Managed": true, "MacAddress": {"Address": "52:54:00:d9:71:12"}}'`
 
 #### Update machine
 Change the information of a machine, this also used to create a machine.
@@ -132,12 +133,12 @@ Change the information of a machine, this also used to create a machine.
 **Example body:**<br>
 ```json
 {
-	"Name": "Hello World",
-	"Architecture": "x86_64",
-	"Managed": true,
-	"MacAddress": [{
-		"Mac": "52:54:00:d9:71:15",
-	}]
+    "Name": "Hello World",
+    "Architecture": "x86_64",
+    "Managed": true,
+    "MacAddress": [{
+        "Mac": "52:54:00:d9:71:15",
+    }]
 }
 ```
 **Example curl command:** `curl -X PUT localhost:4848/machine -H 'Content-Type: application/json' -d '{"name": "Test", "Architecture": "x86_64", "Managed": true, "MacAddress": {"Address": "52:54:00:d9:71:12"}}'`
@@ -339,7 +340,7 @@ Creates a new image entity and file.
 - *Type:* BAAS image type, one of: base, system, temporal and temporary<br>
 - *Versioned:* Boolean value indicating that it is a versioned or a
   checksum-based image<br>
-
+- *Username:* Username of the user that you want to create the image for<br>
 **Response:**
 - *Name:* Human-readable name of the image.<br>
 - *Versions:* A list of objects with a Version attribute containing the version number.<br>
@@ -351,7 +352,7 @@ Creates a new image entity and file.
 - *Checksum:* Checksum in case of a non-versioned image.<br>
 
 **Permissions:** User in question or administrator<br>
-**Example curl request:** `curl -X POST "localhost:4848/user/ValentijnvdBeek/image" -H 'Content-Type: application/json' --cookie "session-name=$SECRET" -d '{"Name": "Fedora Research", "DiskCompressionStrategy": "none", "ImageFileType": "raw", "Type": "system"}'`<br>
+**Example curl request:** `curl -X POST "localhost:4848/user/ValentijnvdBeek/image" -H 'Content-Type: application/json' --cookie "session-name=$SECRET" -d '{"Name": "Fedora Research", "DiskCompressionStrategy": "none", "ImageFileType": "raw", "Type": "system","username":"ValentijnvdBeek"}'`<br>
 **Example Response:**
 ```json
 {

@@ -1,14 +1,17 @@
-// Copyright (c) 2020-2022 TU Delft & Valentijn van de Beek <v.d.vandebeek@student.tudelft.nl> All rights reserved.
+// Copyright (c) 2020-2022 TU Delft
+// Copyright (c) 2022-2025 Valentijn van de Beek <v.d.vandebeek@student.tudelft.nl>
+// All rights reserved.
+//
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package main
 
 import (
-	"os"
-	"syscall"
-
 	log "github.com/sirupsen/logrus"
+	"os"
+	"os/exec"
+	"syscall"
 )
 
 // MachineImage stores the target directory and device file associated with an image.
@@ -32,6 +35,44 @@ func (image *MachineImage) Initialise(file string, target string) {
 	if err := os.Mkdir(target, 0755); err != nil {
 		log.Warnf("Failed to create mount target: %v", err)
 		return
+	}
+}
+
+func (image *MachineImage) CreateMachinePartition() {
+	// Checks if the disk has been setup at all, if not, it will create a GPT disk with
+	// a singular EXT4 partition for metadata storage.
+
+	// go-diskfs has a bug with creating EXT4 GPT partitions, so for now we'll be shelling
+	// out to GNU parted to deal with the disk
+	// see: https://github.com/diskfs/go-diskfs/issues/274
+	v, _ := image.Exists(image.DeviceFile)
+
+	if v {
+		log.Warn("Machine partition already exists, skip.")
+		// The path exists so we don't need to do anything
+		return
+	}
+
+	log.Warn("Create new machine partition and disk label")
+	diskPath := image.DeviceFile[:len(image.DeviceFile)-1]
+	cmd := exec.Command("parted", "-s", diskPath, "mklabel", "gpt")
+	log.Info(cmd)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Failed running parted: %v", err)
+	}
+
+	cmd = exec.Command("parted", "-s", diskPath, "mkpart", "ext4", "0", "20MiB")
+	log.Info(cmd)
+	err = cmd.Run()
+	if err != nil {
+		log.Fatalf("Failed running parted: %v", err)
+	}
+
+	cmd = exec.Command("mkfs.ext4", image.DeviceFile)
+	log.Info(cmd)
+	if err != nil {
+		log.Fatalf("Failed running mkfs.ext4: %v", err)
 	}
 }
 
@@ -85,7 +126,7 @@ func (image *MachineImage) RemoveAll(path string) error {
 
 // Exists checks if the path exists on disk
 func (image *MachineImage) Exists(path string) (bool, error) {
-	_, err := os.Stat(image.target + "/" + path)
+	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return false, nil
 	}

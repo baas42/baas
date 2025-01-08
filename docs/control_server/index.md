@@ -16,6 +16,7 @@ possible.
 ## Documentation index
 1. [Running the Server](running_baas_control_server.md)
 2. [REST API](REST API.md)
+3. [Logging In](logging_in.md)
 
 ## Overview of how the typical interaction works
 When the control server is run the server will open a SQL database and
@@ -31,11 +32,11 @@ image that should be booted and any information about images such as
 compression algorithm.
 
 !!! Danger
-	The implementation of the system message is incredibly
+    The implementation of the system message is incredibly
     simple and allows for the complete bypassing of all security
     mechanisms. Please do not deploy the BAAS project on a safety
-	critical system until this mechanism is replaced with a more
-	secure implementation.
+    critical system until this mechanism is replaced with a more
+    secure implementation.
 
 Each request sent to the system is checked whether it is a system
 message and hence is provided with a specific header, whether a user

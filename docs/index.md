@@ -44,7 +44,7 @@ Normally, you would use a virtual machine to create a client machine and run the
 
 !!! warning "Firewalls can interfere with VM networks."
     If you have problems with connecting to the server, double check if there is not a firewall running in the background.
-	Run the following command, after running it, you should be able to boot the virtual machine with the proper network settings.
+    Run the following command, after running it, you should be able to boot the virtual machine with the proper network settings.
 
 ```sh
 virt-install --pxe --prompt --memory 2048 --name baas --disk size=30
@@ -58,22 +58,35 @@ make management_initramfs
 ```
 
 ### Starting the control server
-In `virt-manager` go to view and select Details, press on the light bulb and find the menu item called NIC. From there copy the MAC address and change the value in `control_server/main.go` to this MAC address. You can then run `make control_server` to run the control server.
+In `virt-manager` go to view and select Details, press on the light bulb and find the menu item called NIC. From there copy the MAC address and change `FIRST_MAC_ADDRESS` in the Makefile to this value. You can then run `make control_server` to run the control server. Then you can run `make setup_control_server` to create an administrator user, a first disk image and add the VM to BAAS. If all is well, it should now boot into the management operating system.
 
 ### Scheduling the first boot
 At boot the server will add the machine and hence the only thing left to do is ensuring that the system actually has images that it can boot. First create a user on the system, followed by the creation of an initial image and the downloading this image to disk. It is assumed that you have the `curl` and `jq` utilities installed and are running on a UNIX system.
 
 ```sh
-	curl -X POST "localhost:4848/user" -H 'Content-Type: application/json' -d '{"name": "USER", "email": "EMAIL", "role": "user"}'
-	UUID=$(curl -X POST "localhost:4848/user/USER/image" -H 'Content-Type: application/json' -d '{"name": "Test image", "DiskUUID": "/dev/sda"}' | jq .UUID | sed 's/\"//g')
-	curl "localhost:4848/image/${UUID}/latest" --output /tmp/image.img
+# Set a preamble for each of the cURL requests. In particular:
+#  - Content-Type -- Type of request data we are giving
+#  - Origin -- Were the request originates from, at the moment we only accept localhost (needed for CORS)
+#  - Type -- Allows a request to bypass session user checking
+HEADERS=$(cat <<EOF
+Content-Type: application/json
+Origin: http://localhost:9090
+Type: system
+EOF
+)
+URL="localhost:4848"
+
+curl -X POST "$URL/user" -H "$HEADERS" -d '{"name": "USER", "email": "EMAIL", "role": "user", "username": "sampleuser"}'
+UUID=$(curl -X POST "$URL:4848/user/USER/image" -d d '{"name": "USER", "email": "EMAIL", "role": "user", "username": "sampleuser"}' | jq .UUID)
+curl "$URI/image/${UUID}/latest" --output /tmp/image.img
 ```
 
 Running these commands creates an initial user called USER and a testing image which is downloaded on disk. This image can be modified in any arbitrary way or can be replaced with another file entirely. After creating the image the modified can be uploaded and scheduled for booting by running the following commands:
 
 ```sh
-	VERSION=$(curl -X POST "localhost:4848/image/${UUID}" -H "Content-Type: multipart/form-data" -F "file=@/tmp/image.img" | awk '{print $4}')
-	curl -X POST "localhost:4848/machine/[your MAC address]/boot" -H 'Content-Type: application/json' -d "{\"Version\": ${VERSION}, \"ImageUUID\": \"${UUID}\", \"update\": false}"
+MAC="some-mac-address"
+VERSION=$(curl -X POST "$URI/image/${UUID}" -H "$HEADERS" -H "Content-Type: multipart/form-data" -F "file=@/tmp/image.img" | awk '{print $4}')
+curl -X POST "$URL/machine/$MAC/boot" -H "$HEADERS" -d "{\"Version\": ${VERSION}, \"ImageUUID\": \"${UUID}\", \"update\": false}"
 ```
 
 ### Running the virtual machine

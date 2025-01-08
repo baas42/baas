@@ -11,6 +11,10 @@ server on future requests in order to authenticate yourself. There is
 functionally no difference between logging and registering since the
 user will be made on first login.
 
+In order to make use of the Github OAuth system, you need to register
+an application and set the right values in `api/login.go`. You can 
+pass the secret as `GITHUB_SECRET`
+
 At the moment is not possible to register multiple OAuth sources to
 one account. Each login as seen as unique and distinct even with
 shared data. Keep in mind that if you use the same username for
