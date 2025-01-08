@@ -16,6 +16,7 @@ possible.
 ## Documentation index
 1. [Running the Server](running_baas_control_server.md)
 2. [REST API](REST API.md)
+3. [Logging In](logging_in.md)
 
 ## Overview of how the typical interaction works
 When the control server is run the server will open a SQL database and
