@@ -26,7 +26,7 @@ control_server_docker:
 
 .PHONY: control_server
 control_server:
-	cd $(mkfile_dir) && sudo env GO111MODULE=on go run ./control_server
+	cd $(mkfile_dir) && sudo env GO111MODULE=on GITHUB_SECRET=${GITHUB_SECRET} go run ./control_server
 
 .PHONY: setup_control_server
 setup_control_server:
