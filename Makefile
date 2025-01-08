@@ -5,6 +5,7 @@ mkfile_dir := $(shell dirname $(mkfile_path))
 # or to the ip address of the control server when ~~testing~~ running in production.
 # This will be put in the hosts file.
 export CONTROL_SERVER_IP ?= 192.168.2.76
+export FIRST_MAC_ADDRESS ?= 52:54:00:08:5e:49
 
 lint_fix:
 	goimports -local baas -w **/*.go
@@ -26,3 +27,7 @@ control_server_docker:
 .PHONY: control_server
 control_server:
 	cd $(mkfile_dir) && sudo env GO111MODULE=on go run ./control_server
+
+.PHONY: setup_control_server
+setup_control_server:
+	@$(mkfile_dir)/utils/setup_control_server.sh ${FIRST_MAC_ADDRESS}
